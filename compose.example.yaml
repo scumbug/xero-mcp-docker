@@ -1,0 +1,41 @@
+# Example compose project. Replace the org names and tenant IDs, and the
+# appdata path if yours differs. Secrets live in xero.env, not here.
+#
+#   One-time sign-in:  docker compose run --rm xero-mcp-auth
+#   Then:              docker compose up -d
+#
+# Endpoints: http://<host>:8000/<org>/mcp  (send the API key as a Bearer token)
+
+x-xero: &xero
+  image: ghcr.io/scumbug/xero-mcp-docker:best-of-breed-2026-09-23-2
+  user: "1000:1000" # Unraid: "99:100" if the appdata folder is nobody:users
+  env_file: /mnt/user/appdata/xero-mcp/xero.env
+  volumes:
+    - /mnt/user/appdata/xero-mcp:/data
+
+services:
+  xero-mcp:
+    <<: *xero
+    container_name: xero-mcp
+    command: ["http"]
+    restart: unless-stopped
+    environment:
+      # name=tenant-id, one per org; each is served at /<name>/mcp
+      XERO_ORGS: >-
+        org-a=00000000-0000-0000-0000-000000000000
+        org-b=00000000-0000-0000-0000-000000000000
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Not started by `up`. Host networking because the OAuth callback listens on
+  # 127.0.0.1:53682; tunnel that port from the machine with your browser.
+  xero-mcp-auth:
+    <<: *xero
+    profiles: ["auth"]
+    command: ["auth"]
+    network_mode: host
