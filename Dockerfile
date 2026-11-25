@@ -14,7 +14,7 @@ ARG UPSTREAM_SHA=fdc8a94a74871890fa82916fec104bc650a0dfec
 ARG SUPERGATEWAY_VERSION=4.3.0
 
 # ---------------------------------------------------------------------------
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 ARG UPSTREAM_REPO
 ARG UPSTREAM_REF
 ARG UPSTREAM_SHA
@@ -33,7 +33,7 @@ RUN npm ci --ignore-scripts --no-audit --no-fund \
  && npm run build
 
 # ---------------------------------------------------------------------------
-FROM node:24-alpine
+FROM node:26-alpine
 ARG UPSTREAM_REPO
 ARG UPSTREAM_REF
 ARG UPSTREAM_SHA
